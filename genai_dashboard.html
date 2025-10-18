@@ -232,7 +232,7 @@
         /* Insight Cards */
         .insights-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
             margin-top: 1.5rem;
         }
@@ -248,6 +248,12 @@
         .insight-icon {
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
+        }
+
+        .insight-icon .material-icons {
+            font-size: 2rem;
+            margin-right: 0;
+            color: var(--accent);
         }
 
         .insight-title {
@@ -1269,37 +1275,37 @@
 
             const insights = [
                 {
-                    icon: '🚀',
+                    icon: 'rocket_launch',
                     title: 'Rapid Growth',
                     value: `${growthRate}%`,
                     text: `Growth rate in 2025 with ${newCases} new implementations added to the dataset`
                 },
                 {
-                    icon: '🏆',
+                    icon: 'emoji_events',
                     title: 'Leading Industry',
                     value: topIndustry[0].split(' ')[0],
                     text: `${topIndustry[0]} leads with ${topIndustry[1]} use cases (${((topIndustry[1]/useCases.length)*100).toFixed(1)}% of total)`
                 },
                 {
-                    icon: '🤖',
+                    icon: 'smart_toy',
                     title: 'Top Agent Type',
                     value: topAgent[0],
                     text: `${topAgent[0]} agents are most common with ${topAgent[1]} implementations`
                 },
                 {
-                    icon: '⚡',
+                    icon: 'bolt',
                     title: 'Dominant Tech',
                     value: topTech[0],
                     text: `${topTech[0]} powers ${topTech[1]} use cases (${((topTech[1]/useCases.length)*100).toFixed(1)}% coverage)`
                 },
                 {
-                    icon: '📊',
+                    icon: 'analytics',
                     title: 'Metrics Available',
                     value: `${((withMetrics/useCases.length)*100).toFixed(0)}%`,
                     text: `${withMetrics} use cases include quantitative ROI, efficiency, or cost metrics`
                 },
                 {
-                    icon: '🏢',
+                    icon: 'business',
                     title: 'Multi-Use Leaders',
                     value: multiUseCompanies,
                     text: `Companies with multiple AI implementations showing comprehensive adoption`
@@ -1308,7 +1314,7 @@
 
             document.getElementById('insightsGrid').innerHTML = insights.map(insight => `
                 <div class="insight-card">
-                    <div class="insight-icon">${insight.icon}</div>
+                    <div class="insight-icon"><span class="material-icons">${insight.icon}</span></div>
                     <div class="insight-title">${insight.title}</div>
                     <div class="insight-value">${insight.value}</div>
                     <div class="insight-text">${insight.text}</div>
