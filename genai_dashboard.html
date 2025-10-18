@@ -1493,16 +1493,19 @@
 
             // Build bubble data: each bubble is an industry-application combination
             const bubbleData = [];
-            topIndustries.forEach((industry, industryIdx) => {
-                topApplications.forEach((app, appIdx) => {
+            topIndustries.forEach((industry) => {
+                topApplications.forEach((app) => {
                     const count = useCases.filter(uc =>
                         uc.industry === industry && uc.application_area === app
                     ).length;
 
                     if (count > 0) {
+                        const industryLabel = industry.split(' ').length > 2 ?
+                            industry.split(' ').slice(0, 2).join(' ') : industry;
+
                         bubbleData.push({
-                            x: industryIdx,
-                            y: appIdx,
+                            x: industryLabel,
+                            y: app,
                             r: Math.sqrt(count) * 5, // Scale bubble size
                             count: count,
                             industry: industry,
@@ -1648,12 +1651,16 @@
 
             // Create scatter plot data for heatmap
             const heatmapData = [];
-            topIndustries.forEach((industry, xIdx) => {
-                topApplications.forEach((app, yIdx) => {
+            topIndustries.forEach((industry) => {
+                topApplications.forEach((app) => {
                     const value = matrix[app][industry];
+                    const industryLabel = industry.split(' ').length > 2 ?
+                        industry.split(' ').slice(0, 2).join(' ') : industry;
+                    const appLabel = app.length > 20 ? app.substring(0, 20) + '...' : app;
+
                     heatmapData.push({
-                        x: xIdx,
-                        y: yIdx,
+                        x: industryLabel,
+                        y: appLabel,
                         v: value,
                         industry: industry,
                         application: app
