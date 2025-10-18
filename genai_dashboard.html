@@ -538,6 +538,18 @@
                         <canvas id="geoByIndustryChart"></canvas>
                     </div>
                 </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Application concentration bubble chart</h3>
+                    <div class="chart-container">
+                        <canvas id="applicationBubbleChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Application intensity heatmap</h3>
+                    <div class="chart-container">
+                        <canvas id="applicationHeatmapChart"></canvas>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -658,6 +670,8 @@
             renderCompaniesTable();
             renderApplicationByIndustryChart();
             renderGeoByIndustryChart();
+            renderApplicationBubbleChart();
+            renderApplicationHeatmapChart();
             renderCompaniesChart();
             renderTechStackChart();
             renderMetricsCharts();
@@ -1436,6 +1450,231 @@
                         }
                     }
                 }
+            });
+        }
+
+        function renderApplicationBubbleChart() {
+            const ctx = document.getElementById('applicationBubbleChart');
+
+            // Get top 5 industries and top 8 application areas
+            const topIndustries = Object.entries(metadata.industries)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(i => i[0]);
+
+            const topApplications = Object.entries(metadata.applications)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8)
+                .map(a => a[0]);
+
+            // Build bubble data: each bubble is an industry-application combination
+            const bubbleData = [];
+            topIndustries.forEach((industry, industryIdx) => {
+                topApplications.forEach((app, appIdx) => {
+                    const count = useCases.filter(uc =>
+                        uc.industry === industry && uc.application_area === app
+                    ).length;
+
+                    if (count > 0) {
+                        bubbleData.push({
+                            x: industryIdx,
+                            y: appIdx,
+                            r: Math.sqrt(count) * 4, // Scale bubble size
+                            count: count,
+                            industry: industry,
+                            application: app
+                        });
+                    }
+                });
+            });
+
+            new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Use Cases',
+                        data: bubbleData,
+                        backgroundColor: bubbleData.map((_, idx) =>
+                            chartColors[idx % chartColors.length] + '80'  // 50% opacity
+                        ),
+                        borderColor: bubbleData.map((_, idx) =>
+                            chartColors[idx % chartColors.length]
+                        ),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const point = context.raw;
+                                    return [
+                                        `${point.industry}`,
+                                        `${point.application}`,
+                                        `${point.count} use cases`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: -0.5,
+                            max: topIndustries.length - 0.5,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value, index) {
+                                    return topIndustries[value] ?
+                                        topIndustries[value].substring(0, 15) + '...' : '';
+                                }
+                            },
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        },
+                        y: {
+                            type: 'linear',
+                            min: -0.5,
+                            max: topApplications.length - 0.5,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value, index) {
+                                    return topApplications[value] || '';
+                                }
+                            },
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderApplicationHeatmapChart() {
+            const ctx = document.getElementById('applicationHeatmapChart');
+
+            // Get top 6 application areas and top 5 industries
+            const topApplications = Object.entries(metadata.applications)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 6)
+                .map(a => a[0]);
+
+            const topIndustries = Object.entries(metadata.industries)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(i => i[0]);
+
+            // Build matrix
+            const matrix = {};
+            topApplications.forEach(app => {
+                matrix[app] = {};
+                topIndustries.forEach(industry => {
+                    matrix[app][industry] = 0;
+                });
+            });
+
+            useCases.forEach(uc => {
+                if (topIndustries.includes(uc.industry) && topApplications.includes(uc.application_area)) {
+                    matrix[uc.application_area][uc.industry]++;
+                }
+            });
+
+            // Find max value for color scaling
+            const maxValue = Math.max(...topApplications.flatMap(app =>
+                topIndustries.map(ind => matrix[app][ind])
+            ));
+
+            // Create color scale function
+            const getHeatColor = (value) => {
+                const intensity = value / maxValue;
+                // Gradient from light cream to dark orange
+                const r = Math.round(235 + (37 - 235) * intensity);
+                const g = Math.round(94 + (60 - 94) * intensity);
+                const b = Math.round(40 + (34 - 40) * intensity);
+                return `rgb(${r}, ${g}, ${b})`;
+            };
+
+            // Create datasets - one per application area
+            const datasets = topApplications.map((app, appIdx) => ({
+                label: app,
+                data: topIndustries.map((industry, indIdx) => ({
+                    x: indIdx,
+                    y: appIdx,
+                    v: matrix[app][industry]
+                })),
+                backgroundColor: topIndustries.map((industry) =>
+                    getHeatColor(matrix[app][industry])
+                ),
+                borderWidth: 1,
+                borderColor: '#FFFCF2',
+                barThickness: 'flex'
+            }));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topIndustries.map(i => i.substring(0, 12) + '...'),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'x',
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 8,
+                                font: { size: 9 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const app = topApplications[context.datasetIndex];
+                                    const industry = topIndustries[context.dataIndex];
+                                    const value = matrix[app][industry];
+                                    return `${app} in ${industry}: ${value} use cases`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: false,
+                            grid: { display: false }
+                        },
+                        y: {
+                            stacked: false,
+                            beginAtZero: true,
+                            max: Math.ceil(maxValue * 1.1),
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, datasetIdx) => {
+                            const meta = chart.getDatasetMeta(datasetIdx);
+                            meta.data.forEach((bar, index) => {
+                                const value = matrix[topApplications[datasetIdx]][topIndustries[index]];
+                                if (value > 0) {
+                                    ctx.fillStyle = '#FFFCF2';
+                                    ctx.font = '600 11px JetBrains Mono';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'bottom';
+                                    ctx.fillText(value, bar.x, bar.y - 2);
+                                }
+                            });
+                        });
+                    }
+                }]
             });
         }
 
