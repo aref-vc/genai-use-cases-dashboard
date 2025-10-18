@@ -519,6 +519,28 @@
             </div>
         </section>
 
+        <!-- Cross-Industry Analysis -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">🔀 Cross-industry analysis</h2>
+                <p class="section-description">Application areas and geographic distribution patterns across industries</p>
+            </div>
+            <div class="grid-2x2">
+                <div class="chart-card" style="grid-column: span 2;">
+                    <h3 class="chart-title">Application areas by industry</h3>
+                    <div class="chart-container">
+                        <canvas id="applicationByIndustryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card" style="grid-column: span 2;">
+                    <h3 class="chart-title">Geographic distribution by industry</h3>
+                    <div class="chart-container">
+                        <canvas id="geoByIndustryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Business Impact -->
         <section class="section">
             <div class="section-header">
@@ -634,6 +656,8 @@
             renderInsights();
             renderCountryTable();
             renderCompaniesTable();
+            renderApplicationByIndustryChart();
+            renderGeoByIndustryChart();
             renderCompaniesChart();
             renderTechStackChart();
             renderMetricsCharts();
@@ -1258,6 +1282,161 @@
                     <div class="insight-text">${insight.text}</div>
                 </div>
             `).join('');
+        }
+
+        function renderApplicationByIndustryChart() {
+            const ctx = document.getElementById('applicationByIndustryChart');
+
+            // Get top 5 industries
+            const topIndustries = Object.entries(metadata.industries)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(i => i[0]);
+
+            // Get top 5 application areas
+            const topApplications = Object.entries(metadata.applications)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(a => a[0]);
+
+            // Build matrix
+            const matrix = {};
+            topApplications.forEach(app => {
+                matrix[app] = {};
+                topIndustries.forEach(industry => {
+                    matrix[app][industry] = 0;
+                });
+            });
+
+            useCases.forEach(uc => {
+                if (topIndustries.includes(uc.industry) && topApplications.includes(uc.application_area)) {
+                    matrix[uc.application_area][uc.industry]++;
+                }
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topIndustries,
+                    datasets: topApplications.map((app, idx) => ({
+                        label: app,
+                        data: topIndustries.map(industry => matrix[app][industry]),
+                        backgroundColor: chartColors[idx % chartColors.length],
+                        borderWidth: 0,
+                        borderRadius: idx === topApplications.length - 1 ? {
+                            topLeft: 6,
+                            topRight: 6,
+                            bottomLeft: 0,
+                            bottomRight: 0
+                        } : 0
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 12,
+                                font: { size: 10 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderGeoByIndustryChart() {
+            const ctx = document.getElementById('geoByIndustryChart');
+
+            // Get top 5 industries
+            const topIndustries = Object.entries(metadata.industries)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(i => i[0]);
+
+            // Get top 6 countries (excluding Global)
+            const topCountries = Object.entries(metadata.countries)
+                .filter(c => c[0] !== 'Global')
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 6)
+                .map(c => c[0]);
+
+            // Build matrix
+            const matrix = {};
+            topCountries.forEach(country => {
+                matrix[country] = {};
+                topIndustries.forEach(industry => {
+                    matrix[country][industry] = 0;
+                });
+            });
+
+            useCases.forEach(uc => {
+                if (topIndustries.includes(uc.industry) && topCountries.includes(uc.country)) {
+                    matrix[uc.country][uc.industry]++;
+                }
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topIndustries,
+                    datasets: topCountries.map((country, idx) => ({
+                        label: country,
+                        data: topIndustries.map(industry => matrix[country][industry]),
+                        backgroundColor: chartColors[idx % chartColors.length],
+                        borderWidth: 0,
+                        borderRadius: idx === topCountries.length - 1 ? {
+                            topLeft: 6,
+                            topRight: 6,
+                            bottomLeft: 0,
+                            bottomRight: 0
+                        } : 0
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 12,
+                                font: { size: 10 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        }
+                    }
+                }
+            });
         }
 
         function renderCompaniesChart() {
