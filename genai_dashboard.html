@@ -1491,20 +1491,23 @@
                 .slice(0, 6)
                 .map(a => a[0]);
 
+            // Create consistent label arrays
+            const industryLabels = topIndustries.map(i => {
+                const words = i.split(' ');
+                return words.length > 2 ? words.slice(0, 2).join(' ') : i;
+            });
+
             // Build bubble data: each bubble is an industry-application combination
             const bubbleData = [];
-            topIndustries.forEach((industry) => {
+            topIndustries.forEach((industry, idx) => {
                 topApplications.forEach((app) => {
                     const count = useCases.filter(uc =>
                         uc.industry === industry && uc.application_area === app
                     ).length;
 
                     if (count > 0) {
-                        const industryLabel = industry.split(' ').length > 2 ?
-                            industry.split(' ').slice(0, 2).join(' ') : industry;
-
                         bubbleData.push({
-                            x: industryLabel,
+                            x: industryLabels[idx],
                             y: app,
                             r: Math.sqrt(count) * 5, // Scale bubble size
                             count: count,
@@ -1559,10 +1562,7 @@
                     scales: {
                         x: {
                             type: 'category',
-                            labels: topIndustries.map(i => {
-                                const words = i.split(' ');
-                                return words.length > 2 ? words.slice(0, 2).join(' ') : i;
-                            }),
+                            labels: industryLabels,
                             offset: true,
                             grid: {
                                 display: true,
@@ -1618,6 +1618,16 @@
                 .slice(0, 6)
                 .map(i => i[0]);
 
+            // Create consistent label arrays
+            const industryLabels = topIndustries.map(i => {
+                const words = i.split(' ');
+                return words.length > 2 ? words.slice(0, 2).join(' ') : i;
+            });
+
+            const appLabels = topApplications.map(a => {
+                return a.length > 20 ? a.substring(0, 20) + '...' : a;
+            });
+
             // Build matrix
             const matrix = {};
             topApplications.forEach(app => {
@@ -1651,16 +1661,13 @@
 
             // Create scatter plot data for heatmap
             const heatmapData = [];
-            topIndustries.forEach((industry) => {
-                topApplications.forEach((app) => {
+            topIndustries.forEach((industry, xIdx) => {
+                topApplications.forEach((app, yIdx) => {
                     const value = matrix[app][industry];
-                    const industryLabel = industry.split(' ').length > 2 ?
-                        industry.split(' ').slice(0, 2).join(' ') : industry;
-                    const appLabel = app.length > 20 ? app.substring(0, 20) + '...' : app;
 
                     heatmapData.push({
-                        x: industryLabel,
-                        y: appLabel,
+                        x: industryLabels[xIdx],
+                        y: appLabels[yIdx],
                         v: value,
                         industry: industry,
                         application: app
@@ -1711,10 +1718,7 @@
                     scales: {
                         x: {
                             type: 'category',
-                            labels: topIndustries.map(i => {
-                                const words = i.split(' ');
-                                return words.length > 2 ? words.slice(0, 2).join(' ') : i;
-                            }),
+                            labels: industryLabels,
                             offset: true,
                             grid: { display: false },
                             ticks: {
@@ -1730,9 +1734,7 @@
                         },
                         y: {
                             type: 'category',
-                            labels: topApplications.map(a => {
-                                return a.length > 20 ? a.substring(0, 20) + '...' : a;
-                            }),
+                            labels: appLabels,
                             offset: true,
                             grid: { display: false },
                             ticks: {
