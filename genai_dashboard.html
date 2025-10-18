@@ -562,17 +562,31 @@
                         <canvas id="geoByIndustryChart"></canvas>
                     </div>
                 </div>
-                <div class="chart-card">
-                    <h3 class="chart-title">Application concentration bubble chart</h3>
-                    <div class="chart-container">
-                        <canvas id="applicationBubbleChart"></canvas>
-                    </div>
+            </div>
+        </section>
+
+        <!-- Application Concentration Bubble Chart -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-icons">bubble_chart</span>Application concentration analysis</h2>
+                <p class="section-description">Bubble size represents the volume of use cases at each industry-application intersection</p>
+            </div>
+            <div class="chart-card" style="max-width: 100%; height: 500px;">
+                <div class="chart-container" style="height: 450px;">
+                    <canvas id="applicationBubbleChart"></canvas>
                 </div>
-                <div class="chart-card">
-                    <h3 class="chart-title">Application intensity heatmap</h3>
-                    <div class="chart-container">
-                        <canvas id="applicationHeatmapChart"></canvas>
-                    </div>
+            </div>
+        </section>
+
+        <!-- Application Intensity Heatmap -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-icons">grid_on</span>Application intensity heatmap</h2>
+                <p class="section-description">Color intensity shows the concentration of use cases across industries and application areas</p>
+            </div>
+            <div class="chart-card" style="max-width: 100%; height: 500px;">
+                <div class="chart-container" style="height: 450px;">
+                    <canvas id="applicationHeatmapChart"></canvas>
                 </div>
             </div>
         </section>
