@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI Use Cases Intelligence Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="data_embedded.js"></script>
+    <style>
+        :root {
+            /* Midnight Flame - Dark & dramatic with fire accent */
+            --font-family: 'JetBrains Mono', monospace;
+
+            /* Backgrounds */
+            --bg-main: #FFFCF2;
+            --bg-main-rgb: 255, 252, 242;
+            --bg-white: #FDF9ED;
+            --bg-white-rgb: 253, 249, 237;
+            --bg-accent: #F5F3EE;
+            --bg-accent-rgb: 245, 243, 238;
+
+            /* Text Colors */
+            --text-primary: #252422;
+            --text-primary-rgb: 37, 36, 34;
+            --text-secondary: #403D39;
+            --text-secondary-rgb: 64, 61, 57;
+            --text-light: #CCC5B9;
+            --text-light-rgb: 204, 197, 185;
+
+            /* UI Colors */
+            --accent: #EB5E28;
+            --accent-rgb: 235, 94, 40;
+            --dark: #403D39;
+            --dark-rgb: 64, 61, 57;
+            --gray: #CCC5B9;
+            --gray-rgb: 204, 197, 185;
+            --black: #252422;
+            --black-rgb: 37, 36, 34;
+
+            /* Borders */
+            --border: #DDD7CC;
+            --border-rgb: 221, 215, 204;
+            --border-light: #F0EDE6;
+            --border-light-rgb: 240, 237, 230;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-white);
+            border-bottom: 2px solid var(--border);
+            padding: 2rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(var(--text-primary-rgb), 0.05);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.1);
+            border-color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-light);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .stat-context {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Section Styles */
+        .section {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-light);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: none;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+        }
+
+        /* Grid Layouts */
+        .grid-2x2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .grid-2x2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-top: 1rem;
+        }
+
+        /* Insight Cards */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .insight-card {
+            background: var(--bg-accent);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 6px;
+            padding: 1.5rem;
+        }
+
+        .insight-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .insight-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .insight-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th {
+            background: var(--bg-accent);
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 2px solid var(--border);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.9rem;
+        }
+
+        .data-table tr:hover {
+            background: var(--bg-accent);
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            color: var(--bg-white);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, rgba(var(--accent-rgb), 0.6) 100%);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(var(--accent-rgb), 0.1);
+            color: var(--accent);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-white);
+            border-top: 2px solid var(--border);
+            padding: 2rem;
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+
+            .chart-card {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-accent);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <h1>🤖 GenAI Use Cases Intelligence Dashboard</h1>
+            <p class="subtitle">Deep dive analysis of 974 real-world generative AI implementations across global enterprises</p>
+        </div>
+    </header>
+
+    <!-- Key Stats -->
+    <div class="stats-grid" id="statsGrid">
+        <div class="loading">Loading data...</div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Industry Analysis -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">📊 Industry distribution & adoption</h2>
+                <p class="section-description">GenAI adoption patterns across 11 major industry sectors</p>
+            </div>
+            <div class="grid-2x2">
+                <div class="chart-card">
+                    <h3 class="chart-title">Use cases by industry</h3>
+                    <div class="chart-container">
+                        <canvas id="industryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">New vs existing implementations</h3>
+                    <div class="chart-container">
+                        <canvas id="newVsExistingChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Technology adoption patterns</h3>
+                    <div class="chart-container">
+                        <canvas id="technologyChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Geographic distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="geographyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Agent Type Analysis -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">🏷️ Agent type distribution</h2>
+                <p class="section-description">Breakdown of AI agent types: Customer, Employee, Creative, Code, Data, Security</p>
+            </div>
+            <div class="grid-2x2">
+                <div class="chart-card">
+                    <h3 class="chart-title">Agent type breakdown</h3>
+                    <div class="chart-container">
+                        <canvas id="agentTypeChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Agent types by industry</h3>
+                    <div class="chart-container">
+                        <canvas id="agentByIndustryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Application areas</h3>
+                    <div class="chart-container">
+                        <canvas id="applicationChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Technology stack combinations</h3>
+                    <div class="chart-container">
+                        <canvas id="techStackChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Insights -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">💡 Key insights & trends</h2>
+                <p class="section-description">Critical patterns and findings from the dataset</p>
+            </div>
+            <div class="insights-grid" id="insightsGrid">
+            </div>
+        </section>
+
+        <!-- Data Tables -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">📋 Detailed rankings</h2>
+                <p class="section-description">Top performers by country and company implementations</p>
+            </div>
+            <div class="grid-2x2">
+                <div class="chart-card">
+                    <h3 class="chart-title">Top 10 countries</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Country</th>
+                                <th>Use Cases</th>
+                                <th>Share</th>
+                            </tr>
+                        </thead>
+                        <tbody id="countryTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Top 10 companies by implementations</h3>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Company</th>
+                                <th>Use Cases</th>
+                            </tr>
+                        </thead>
+                        <tbody id="companiesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Business Impact -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">📈 Business impact & metrics</h2>
+                <p class="section-description">Quantitative outcomes and ROI data from implementations</p>
+            </div>
+            <div class="grid-2x2">
+                <div class="chart-card">
+                    <h3 class="chart-title">Use cases with metrics</h3>
+                    <div class="chart-container">
+                        <canvas id="metricsChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Metric types distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="metricTypesChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Top companies by use cases</h3>
+                    <div class="chart-container">
+                        <canvas id="companiesChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Metrics coverage by industry</h3>
+                    <div class="chart-container">
+                        <canvas id="metricsIndustryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p><strong>Data Source:</strong> Google Cloud Transform | <strong>Last Updated:</strong> October 9, 2025 | <strong>Extraction Date:</strong> October 18, 2025</p>
+            <p style="margin-top: 0.5rem; opacity: 0.7;">974 use cases across 11 industries • 6 agent types • 20+ technologies</p>
+        </div>
+    </footer>
+
+    <script>
+        // Load and process data
+        let rawData = null;
+        let useCases = [];
+        let metadata = {};
+
+        // Color palette based on theme
+        const colors = {
+            primary: '#EB5E28',
+            secondary: '#403D39',
+            accent: '#CCC5B9',
+            dark: '#252422',
+            bg: '#FFFCF2'
+        };
+
+        const chartColors = [
+            '#EB5E28', '#403D39', '#CCC5B9', '#252422',
+            'rgba(235, 94, 40, 0.7)', 'rgba(64, 61, 57, 0.7)',
+            'rgba(204, 197, 185, 0.7)', 'rgba(37, 36, 34, 0.7)',
+            'rgba(235, 94, 40, 0.5)', 'rgba(64, 61, 57, 0.5)',
+            'rgba(204, 197, 185, 0.5)'
+        ];
+
+        // Chart defaults
+        Chart.defaults.font.family = "'JetBrains Mono', monospace";
+        Chart.defaults.color = '#403D39';
+        Chart.defaults.borderColor = '#DDD7CC';
+
+        // Custom legend point style plugin
+        const customLegendPlugin = {
+            id: 'customLegendPoints',
+            beforeInit(chart) {
+                const originalFit = chart.legend.fit;
+                chart.legend.fit = function fit() {
+                    originalFit.bind(chart.legend)();
+                    this.height += 5;
+                };
+            }
+        };
+
+        Chart.register(customLegendPlugin);
+
+        function loadData() {
+            try {
+                // Data is now embedded via data_embedded.js
+                if (typeof GENAI_DATA === 'undefined') {
+                    throw new Error('Data not loaded');
+                }
+
+                rawData = GENAI_DATA;
+                useCases = rawData.use_cases;
+                metadata = rawData.metadata;
+
+                renderDashboard();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('statsGrid').innerHTML = '<div class="loading">Error loading data. Please ensure data_embedded.js is in the same directory.</div>';
+            }
+        }
+
+        function renderDashboard() {
+            renderStats();
+            renderIndustryChart();
+            renderNewVsExistingChart();
+            renderAgentTypeChart();
+            renderAgentByIndustryChart();
+            renderTechnologyChart();
+            renderGeographyChart();
+            renderApplicationChart();
+            renderInsights();
+            renderCountryTable();
+            renderCompaniesTable();
+            renderCompaniesChart();
+            renderTechStackChart();
+            renderMetricsCharts();
+        }
+
+        function renderStats() {
+            const newCases = useCases.filter(uc => uc.is_new_entry).length;
+            const withMetrics = useCases.filter(uc =>
+                uc.metrics.roi_percentage ||
+                uc.metrics.efficiency_gain ||
+                uc.metrics.cost_reduction ||
+                uc.metrics.time_saved
+            ).length;
+
+            const avgTech = (useCases.reduce((sum, uc) => sum + uc.technologies.length, 0) / useCases.length).toFixed(1);
+
+            const statsHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Use Cases</div>
+                    <div class="stat-value">${useCases.length.toLocaleString()}</div>
+                    <div class="stat-context">Across 11 industries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">New in 2025</div>
+                    <div class="stat-value">${newCases}</div>
+                    <div class="stat-context">${((newCases/useCases.length)*100).toFixed(1)}% of total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Industries</div>
+                    <div class="stat-value">${Object.keys(metadata.industries).length}</div>
+                    <div class="stat-context">11 major sectors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Agent Types</div>
+                    <div class="stat-value">${Object.keys(metadata.agent_types).length}</div>
+                    <div class="stat-context">6 distinct categories</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Technologies</div>
+                    <div class="stat-value">${Object.keys(metadata.technologies).length}</div>
+                    <div class="stat-context">Google Cloud products</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">With Metrics</div>
+                    <div class="stat-value">${withMetrics}</div>
+                    <div class="stat-context">${((withMetrics/useCases.length)*100).toFixed(1)}% quantified</div>
+                </div>
+            `;
+
+            document.getElementById('statsGrid').innerHTML = statsHTML;
+        }
+
+        function renderIndustryChart() {
+            const ctx = document.getElementById('industryChart');
+            const industries = Object.entries(metadata.industries)
+                .sort((a, b) => b[1] - a[1]);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: industries.map(i => i[0]),
+                    datasets: [{
+                        label: 'Use Cases',
+                        data: industries.map(i => i[1]),
+                        backgroundColor: chartColors[0],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: 'start'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.parsed.x} use cases (${((context.parsed.x/useCases.length)*100).toFixed(1)}%)`
+                            }
+                        },
+                        datalabels: {
+                            display: true,
+                            color: '#FFFCF2',
+                            anchor: 'end',
+                            align: 'start',
+                            offset: 10,
+                            formatter: (value) => value
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const data = dataset.data[index];
+                                ctx.fillStyle = '#FFFCF2';
+                                ctx.font = '600 12px JetBrains Mono';
+                                ctx.textAlign = 'right';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(data, bar.x - 8, bar.y);
+                            });
+                        });
+                    }
+                }]
+            });
+        }
+
+        function renderNewVsExistingChart() {
+            const ctx = document.getElementById('newVsExistingChart');
+
+            // Group by industry
+            const industryData = {};
+            useCases.forEach(uc => {
+                if (!industryData[uc.industry]) {
+                    industryData[uc.industry] = { new: 0, existing: 0 };
+                }
+                if (uc.is_new_entry) {
+                    industryData[uc.industry].new++;
+                } else {
+                    industryData[uc.industry].existing++;
+                }
+            });
+
+            const industries = Object.keys(industryData).sort((a, b) =>
+                (industryData[b].new + industryData[b].existing) -
+                (industryData[a].new + industryData[a].existing)
+            );
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: industries,
+                    datasets: [
+                        {
+                            label: 'New (2025)',
+                            data: industries.map(i => industryData[i].new),
+                            backgroundColor: chartColors[0],
+                            borderWidth: 0,
+                            borderRadius: 0
+                        },
+                        {
+                            label: 'Existing',
+                            data: industries.map(i => industryData[i].existing),
+                            backgroundColor: chartColors[1],
+                            borderWidth: 0,
+                            borderRadius: {
+                                topLeft: 0,
+                                topRight: 6,
+                                bottomRight: 6,
+                                bottomLeft: 0
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 15
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        },
+                        y: {
+                            stacked: true,
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAgentTypeChart() {
+            const ctx = document.getElementById('agentTypeChart');
+            const agentTypes = Object.entries(metadata.agent_types)
+                .sort((a, b) => b[1] - a[1]);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: agentTypes.map(a => a[0]),
+                    datasets: [{
+                        data: agentTypes.map(a => a[1]),
+                        backgroundColor: chartColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 15,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const percentage = ((value / useCases.length) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((arc, index) => {
+                                const data = dataset.data[index];
+                                const percentage = ((data / useCases.length) * 100).toFixed(1);
+                                const { x, y } = arc.tooltipPosition();
+
+                                ctx.fillStyle = '#252422';
+                                ctx.font = '600 11px JetBrains Mono';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(`${percentage}%`, x, y);
+                            });
+                        });
+                    }
+                }]
+            });
+        }
+
+        function renderAgentByIndustryChart() {
+            const ctx = document.getElementById('agentByIndustryChart');
+
+            // Create matrix of agent types by industry
+            const topIndustries = Object.entries(metadata.industries)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(i => i[0]);
+
+            const agentTypes = Object.keys(metadata.agent_types);
+            const matrix = {};
+
+            agentTypes.forEach(agent => {
+                matrix[agent] = {};
+                topIndustries.forEach(industry => {
+                    matrix[agent][industry] = 0;
+                });
+            });
+
+            useCases.forEach(uc => {
+                if (topIndustries.includes(uc.industry) && uc.agent_type) {
+                    matrix[uc.agent_type][uc.industry]++;
+                }
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topIndustries,
+                    datasets: agentTypes.map((agent, idx) => ({
+                        label: agent,
+                        data: topIndustries.map(industry => matrix[agent][industry]),
+                        backgroundColor: chartColors[idx % chartColors.length],
+                        borderWidth: 0,
+                        // Only the last dataset (top of stack) gets rounded corners
+                        borderRadius: idx === agentTypes.length - 1 ? {
+                            topLeft: 6,
+                            topRight: 6,
+                            bottomLeft: 0,
+                            bottomRight: 0
+                        } : 0
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 10,
+                                font: { size: 10 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTechnologyChart() {
+            const ctx = document.getElementById('technologyChart');
+            const technologies = Object.entries(metadata.technologies)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: technologies.map(t => t[0]),
+                    datasets: [{
+                        label: 'Implementations',
+                        data: technologies.map(t => t[1]),
+                        backgroundColor: chartColors[0],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: 'start'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const percentage = ((context.parsed.x / useCases.length) * 100).toFixed(1);
+                                    return `${context.parsed.x} use cases (${percentage}% coverage)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const data = dataset.data[index];
+                                ctx.fillStyle = '#FFFCF2';
+                                ctx.font = '600 12px JetBrains Mono';
+                                ctx.textAlign = 'right';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(data, bar.x - 8, bar.y);
+                            });
+                        });
+                    }
+                }]
+            });
+        }
+
+        function renderGeographyChart() {
+            const ctx = document.getElementById('geographyChart');
+            const countries = Object.entries(metadata.countries)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8);
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: countries.map(c => c[0]),
+                    datasets: [{
+                        data: countries.map(c => c[1]),
+                        backgroundColor: chartColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 10,
+                                font: { size: 10 }
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const total = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((arc, index) => {
+                                const data = dataset.data[index];
+                                const percentage = ((data / total) * 100).toFixed(0);
+
+                                if (percentage >= 5) { // Only show if slice is big enough
+                                    const { x, y } = arc.tooltipPosition();
+
+                                    ctx.fillStyle = '#252422';
+                                    ctx.font = '600 10px JetBrains Mono';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText(`${percentage}%`, x, y);
+                                }
+                            });
+                        });
+                    }
+                }]
+            });
+        }
+
+        function renderCountryTable() {
+            const countries = Object.entries(metadata.countries)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            const total = countries.reduce((sum, c) => sum + c[1], 0);
+
+            const tbody = document.getElementById('countryTableBody');
+            tbody.innerHTML = countries.map((country, idx) => `
+                <tr>
+                    <td><span class="rank-badge">${idx + 1}</span></td>
+                    <td><strong>${country[0]}</strong></td>
+                    <td>${country[1]}</td>
+                    <td>
+                        ${((country[1] / total) * 100).toFixed(1)}%
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(country[1] / countries[0][1]) * 100}%"></div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCompaniesTable() {
+            const companyCounts = {};
+            useCases.forEach(uc => {
+                companyCounts[uc.company_name] = (companyCounts[uc.company_name] || 0) + 1;
+            });
+
+            const topCompanies = Object.entries(companyCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            const tbody = document.getElementById('companiesTableBody');
+            tbody.innerHTML = topCompanies.map((company, idx) => `
+                <tr>
+                    <td><span class="rank-badge">${idx + 1}</span></td>
+                    <td><strong>${company[0]}</strong></td>
+                    <td>
+                        ${company[1]}
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${(company[1] / topCompanies[0][1]) * 100}%"></div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+
+        function renderApplicationChart() {
+            const ctx = document.getElementById('applicationChart');
+            const applications = Object.entries(metadata.applications)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: applications.map(a => a[0]),
+                    datasets: [{
+                        label: 'Use Cases',
+                        data: applications.map(a => a[1]),
+                        backgroundColor: chartColors[0],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: 'start'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const data = dataset.data[index];
+                                ctx.fillStyle = '#FFFCF2';
+                                ctx.font = '600 12px JetBrains Mono';
+                                ctx.textAlign = 'right';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(data, bar.x - 8, bar.y);
+                            });
+                        });
+                    }
+                }]
+            });
+        }
+
+        function renderInsights() {
+            const newCases = useCases.filter(uc => uc.is_new_entry).length;
+            const withMetrics = useCases.filter(uc =>
+                uc.metrics.roi_percentage ||
+                uc.metrics.efficiency_gain
+            ).length;
+
+            const topIndustry = Object.entries(metadata.industries).sort((a, b) => b[1] - a[1])[0];
+            const topAgent = Object.entries(metadata.agent_types).sort((a, b) => b[1] - a[1])[0];
+            const topTech = Object.entries(metadata.technologies).sort((a, b) => b[1] - a[1])[0];
+
+            // Calculate growth rate
+            const growthRate = ((newCases / (useCases.length - newCases)) * 100).toFixed(0);
+
+            // Find companies with most use cases
+            const companyCounts = {};
+            useCases.forEach(uc => {
+                companyCounts[uc.company_name] = (companyCounts[uc.company_name] || 0) + 1;
+            });
+            const multiUseCompanies = Object.values(companyCounts).filter(c => c > 1).length;
+
+            const insights = [
+                {
+                    icon: '🚀',
+                    title: 'Rapid Growth',
+                    value: `${growthRate}%`,
+                    text: `Growth rate in 2025 with ${newCases} new implementations added to the dataset`
+                },
+                {
+                    icon: '🏆',
+                    title: 'Leading Industry',
+                    value: topIndustry[0].split(' ')[0],
+                    text: `${topIndustry[0]} leads with ${topIndustry[1]} use cases (${((topIndustry[1]/useCases.length)*100).toFixed(1)}% of total)`
+                },
+                {
+                    icon: '🤖',
+                    title: 'Top Agent Type',
+                    value: topAgent[0],
+                    text: `${topAgent[0]} agents are most common with ${topAgent[1]} implementations`
+                },
+                {
+                    icon: '⚡',
+                    title: 'Dominant Tech',
+                    value: topTech[0],
+                    text: `${topTech[0]} powers ${topTech[1]} use cases (${((topTech[1]/useCases.length)*100).toFixed(1)}% coverage)`
+                },
+                {
+                    icon: '📊',
+                    title: 'Metrics Available',
+                    value: `${((withMetrics/useCases.length)*100).toFixed(0)}%`,
+                    text: `${withMetrics} use cases include quantitative ROI, efficiency, or cost metrics`
+                },
+                {
+                    icon: '🏢',
+                    title: 'Multi-Use Leaders',
+                    value: multiUseCompanies,
+                    text: `Companies with multiple AI implementations showing comprehensive adoption`
+                }
+            ];
+
+            document.getElementById('insightsGrid').innerHTML = insights.map(insight => `
+                <div class="insight-card">
+                    <div class="insight-icon">${insight.icon}</div>
+                    <div class="insight-title">${insight.title}</div>
+                    <div class="insight-value">${insight.value}</div>
+                    <div class="insight-text">${insight.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderCompaniesChart() {
+            const ctx = document.getElementById('companiesChart');
+            const companyCounts = {};
+            useCases.forEach(uc => {
+                companyCounts[uc.company_name] = (companyCounts[uc.company_name] || 0) + 1;
+            });
+
+            const topCompanies = Object.entries(companyCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topCompanies.map(c => c[0]),
+                    datasets: [{
+                        label: 'Use Cases',
+                        data: topCompanies.map(c => c[1]),
+                        backgroundColor: chartColors[0],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: 'start'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const data = dataset.data[index];
+                                ctx.fillStyle = '#FFFCF2';
+                                ctx.font = '600 12px JetBrains Mono';
+                                ctx.textAlign = 'right';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(data, bar.x - 8, bar.y);
+                            });
+                        });
+                    }
+                }]
+            });
+        }
+
+        function renderTechStackChart() {
+            const ctx = document.getElementById('techStackChart');
+
+            // Find common technology combinations
+            const techCombos = {};
+            useCases.forEach(uc => {
+                if (uc.technologies.length >= 2) {
+                    const combo = uc.technologies.slice(0, 2).sort().join(' + ');
+                    techCombos[combo] = (techCombos[combo] || 0) + 1;
+                }
+            });
+
+            const topCombos = Object.entries(techCombos)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topCombos.map(c => c[0]),
+                    datasets: [{
+                        label: 'Combinations',
+                        data: topCombos.map(c => c[1]),
+                        backgroundColor: chartColors[0],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: 'start'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const data = dataset.data[index];
+                                ctx.fillStyle = '#FFFCF2';
+                                ctx.font = '600 12px JetBrains Mono';
+                                ctx.textAlign = 'right';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(data, bar.x - 8, bar.y);
+                            });
+                        });
+                    }
+                }]
+            });
+        }
+
+        function renderMetricsCharts() {
+            // Chart 1: Cases with vs without metrics
+            const ctx1 = document.getElementById('metricsChart');
+            const withMetrics = useCases.filter(uc =>
+                uc.metrics.roi_percentage ||
+                uc.metrics.efficiency_gain ||
+                uc.metrics.cost_reduction ||
+                uc.metrics.time_saved
+            ).length;
+
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['With metrics', 'Without metrics'],
+                    datasets: [{
+                        data: [withMetrics, useCases.length - withMetrics],
+                        backgroundColor: [chartColors[0], chartColors[2]],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 15
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((arc, index) => {
+                                const data = dataset.data[index];
+                                const percentage = ((data / useCases.length) * 100).toFixed(1);
+                                const { x, y } = arc.tooltipPosition();
+
+                                ctx.fillStyle = '#252422';
+                                ctx.font = '600 11px JetBrains Mono';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(`${percentage}%`, x, y);
+                            });
+                        });
+                    }
+                }]
+            });
+
+            // Chart 2: Metric types
+            const ctx2 = document.getElementById('metricTypesChart');
+            const metricTypes = {
+                'Efficiency': useCases.filter(uc => uc.metrics.efficiency_gain).length,
+                'Cost': useCases.filter(uc => uc.metrics.cost_reduction).length,
+                'Time': useCases.filter(uc => uc.metrics.time_saved).length,
+                'ROI': useCases.filter(uc => uc.metrics.roi_percentage).length,
+            };
+
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(metricTypes),
+                    datasets: [{
+                        data: Object.values(metricTypes),
+                        backgroundColor: chartColors.slice(0, 4),
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: 'bottom'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' },
+                            ticks: {
+                                stepSize: 10
+                            }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const data = dataset.data[index];
+                                ctx.fillStyle = '#252422';
+                                ctx.font = '600 14px JetBrains Mono';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'bottom';
+                                ctx.fillText(data, bar.x, bar.y - 8);
+                            });
+                        });
+                    }
+                }]
+            });
+
+            // Chart 3: Industries with best metrics coverage
+            const ctx3 = document.getElementById('metricsIndustryChart');
+            const industryMetrics = {};
+            useCases.forEach(uc => {
+                if (!industryMetrics[uc.industry]) {
+                    industryMetrics[uc.industry] = { total: 0, withMetrics: 0 };
+                }
+                industryMetrics[uc.industry].total++;
+                if (uc.metrics.roi_percentage || uc.metrics.efficiency_gain ||
+                    uc.metrics.cost_reduction || uc.metrics.time_saved) {
+                    industryMetrics[uc.industry].withMetrics++;
+                }
+            });
+
+            const industryMetricsRate = Object.entries(industryMetrics)
+                .map(([industry, data]) => ({
+                    industry,
+                    rate: (data.withMetrics / data.total) * 100
+                }))
+                .sort((a, b) => b.rate - a.rate)
+                .slice(0, 8);
+
+            new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: industryMetricsRate.map(i => i.industry.split(' ')[0]),
+                    datasets: [{
+                        label: 'Coverage %',
+                        data: industryMetricsRate.map(i => i.rate),
+                        backgroundColor: chartColors[0],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        borderSkipped: 'start'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.parsed.x.toFixed(1)}% have metrics`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: Math.ceil(Math.max(...industryMetricsRate.map(i => i.rate)) / 5) * 5,
+                            grid: { color: 'rgba(221, 215, 204, 0.3)' },
+                            ticks: {
+                                stepSize: 5,
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        y: {
+                            grid: { display: false }
+                        }
+                    }
+                },
+                plugins: [{
+                    afterDatasetsDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const data = dataset.data[index];
+                                ctx.fillStyle = '#FFFCF2';
+                                ctx.font = '600 11px JetBrains Mono';
+                                ctx.textAlign = 'right';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(`${data.toFixed(1)}%`, bar.x - 8, bar.y);
+                            });
+                        });
+                    }
+                }]
+            });
+        }
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>
